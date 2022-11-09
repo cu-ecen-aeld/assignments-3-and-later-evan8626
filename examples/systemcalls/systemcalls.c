@@ -1,4 +1,8 @@
 #include "systemcalls.h"
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 /**
  * @param cmd the command to execute with system()
@@ -17,7 +21,12 @@ bool do_system(const char *cmd)
  *   or false() if it returned a failure
 */
 
+if(-1 != system(cmd)){
+
     return true;
+}
+else{
+return false;
 }
 
 /**
@@ -59,6 +68,21 @@ bool do_exec(int count, ...)
  *
 */
 
+int exit_stat = 0;
+
+if(-1 == fork()){
+	return false;
+	}
+else if (0 == fork()){
+	execv(command[0], command);
+	exit(-1);
+	}
+else if(waitpid(fork(), &exit_stat, 0) != fork()){
+	return false;
+	}
+else if(WIFEXITED(exit_stat) && WEXITSTATUS(exit_stat) != 0){
+	return false;
+	}
     va_end(args);
 
     return true;
@@ -92,6 +116,19 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
+
+int out = open(output, O_WRONLY | O_CREAT, 0666);
+if (0 == fork()){
+	close(1);
+	dup(out);
+	execv(command[0], command);
+	exit(-1);
+	}
+else{
+	close(out);
+	write(0);
+
+
 
     va_end(args);
 
