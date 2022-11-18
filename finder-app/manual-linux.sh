@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Script outline to install and build kernel.
 # Author: Siddhant Jajoo.
 
@@ -118,7 +118,7 @@ make CROSS_COMPILE=$CROSS_COMPILE all
 # TODO: Copy the finder related scripts and executables to the /home directory
 # on the target rootfs
 sudo -s cp -a ${FINDER_APP_DIR}/writer ${OUTDIR}/rootfs/home/
-sudo -s cp -a ${FINDER_APP_DIR}/finder.sh ${OUTDIR}/rootfs/home/
+sudo -s cp -a ${FINDER_APP_DIR}/finder.sh ${OUTDIR}/rootfs/home/conf/
 sudo -s cp -a ${FINDER_APP_DIR}/autorun-qemu.sh ${OUTDIR}/rootfs/home/
 sudo -s cp -a ${FINDER_APP_DIR}/Makefile ${OUTDIR}/rootfs/home/
 sudo cp ${FINDER_APP_DIR}/conf/username.txt "$OUTDIR"/rootfs/home/conf/
