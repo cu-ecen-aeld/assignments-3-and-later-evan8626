@@ -1,6 +1,8 @@
 #include "systemcalls.h"
 #include <stdlib.h>
+#include <string.h>
 #include <sys/wait.h>
+#include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -26,7 +28,8 @@ if(-1 != system(cmd)){
     return true;
 }
 else{
-return false;
+	perror("Error Executing Command");
+	return false;
 }
 
 /**
@@ -68,24 +71,26 @@ bool do_exec(int count, ...)
  *
 */
 
+pid_t pid;
+pid = fork();
+if(pid == 0){
+	execv (command[0], &command[0]);
+	exit (-1);
+	return true;
+	}
+else {
+	return false;
+	}
+
 int exit_stat = 0;
 
-if(-1 == fork()){
-	return false;
-	}
-else if (0 == fork()){
-	execv(command[0], command);
-	exit(-1);
-	}
-else if(waitpid(fork(), &exit_stat, 0) != fork()){
-	return false;
-	}
-else if(WIFEXITED(exit_stat) && WEXITSTATUS(exit_stat) != 0){
-	return false;
-	}
-    va_end(args);
+va_end(args);
 
-    return true;
+if(waitpid (pid, &status, 0) == -1)
+	return false;
+else if (WIFEXITED (status) && (WEXITSTATUS(status) == EXIT_SUCCESS))
+	return true;
+return false;
 }
 
 /**
@@ -117,20 +122,24 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *
 */
 
-int out = open(output, O_WRONLY | O_CREAT, 0666);
-if (0 == fork()){
-	close(1);
-	dup(out);
-	execv(command[0], command);
-	exit(-1);
-	}
-else{
-	close(out);
-	write(0);
-
-
-
-    va_end(args);
-
-    return true;
+int cre = creat(outputfile,0644);
+if (cre < 0){
+return false;
 }
+
+pid_t pid;
+pid = fork();
+if (pid == -1)
+	return false;
+else if (pid == 0){
+	if (dup2(fd, 1) < 0)
+	{
+		perror("dup2");
+		return false;
+	}
+	close(fd);
+	execv(command[0], &command[0]);
+	exit (-1);
+}
+
+
